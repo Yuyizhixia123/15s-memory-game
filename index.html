@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>15秒记忆现场</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app-shell">
+    <section id="homeScreen" class="screen screen-active">
+      <div class="home-monitor">
+        <div class="home-rec">
+          <span class="rec-dot"></span>
+          <span>LIVE</span>
+          <span>CAM-03</span>
+        </div>
+        <div class="title-block">
+          <p class="eyebrow">便利店监控挑战</p>
+          <h1>15秒记忆现场</h1>
+          <p class="subtitle">盯紧画面。15秒后，只问一个细节。</p>
+        </div>
+      </div>
+      <button id="startButton" class="primary-button" type="button">开始观察</button>
+    </section>
+
+    <section id="observeScreen" class="screen observe-layout">
+      <header class="status-bar" aria-label="当前状态">
+        <div class="status-item">
+          <span>倒计时</span>
+          <strong id="timerText">15</strong>
+        </div>
+        <div class="status-item">
+          <span>分数</span>
+          <strong id="scoreText">0</strong>
+        </div>
+        <div class="status-item">
+          <span>生命</span>
+          <strong id="lifeText">3</strong>
+        </div>
+        <div class="status-item">
+          <span>轮数</span>
+          <strong id="roundText">1</strong>
+        </div>
+      </header>
+
+      <div id="convenienceScene" class="scene" aria-label="便利店监控场景">
+        <div class="camera-hud camera-hud-top">
+          <span><span class="rec-dot"></span> REC</span>
+          <span id="cameraTimeText">CAM-03 14:30:00</span>
+        </div>
+        <div class="camera-hud camera-hud-bottom">
+          <span>STORE AISLE / NIGHT</span>
+          <span id="cameraRoundText">ROUND 1</span>
+        </div>
+        <div id="backgroundLayer" class="scene-layer background-layer"></div>
+        <div id="itemLayer" class="scene-layer item-layer"></div>
+        <div id="characterLayer" class="scene-layer character-layer"></div>
+        <div id="infoLayer" class="scene-layer info-layer"></div>
+        <div id="anomalyLayer" class="scene-layer anomaly-layer"></div>
+      </div>
+    </section>
+
+    <section id="questionScreen" class="screen question-layout">
+      <div class="panel question-panel">
+        <p class="eyebrow">录像已封存</p>
+        <h2 id="questionText">刚才灯闪了几次？</h2>
+        <div id="answerOptions" class="answer-grid">
+          <button class="answer-button" type="button" data-answer="1">1次</button>
+          <button class="answer-button" type="button" data-answer="2">2次</button>
+          <button class="answer-button" type="button" data-answer="3">3次</button>
+          <button class="answer-button" type="button" data-answer="4">4次</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="resultScreen" class="screen result-layout">
+      <div class="panel result-panel">
+        <p class="eyebrow">本轮判定</p>
+        <h2 id="resultTitle">答对了</h2>
+        <p id="resultDetail" class="result-detail">分数 +10</p>
+        <p id="resultFeedbackText" class="feedback-text">监控记录确认无误。</p>
+        <div class="mini-stats">
+          <span>分数<strong id="resultScoreText">0</strong></span>
+          <span>生命<strong id="resultLifeText">3</strong></span>
+          <span>轮数<strong id="resultRoundText">1</strong></span>
+        </div>
+        <button id="nextRoundButton" class="primary-button" type="button">下一轮</button>
+      </div>
+    </section>
+
+    <section id="gameOverScreen" class="screen game-over-layout">
+      <div class="panel final-panel">
+        <p class="eyebrow">录像复盘完成</p>
+        <h2>挑战结束</h2>
+        <div class="final-score">
+          <span>最终分数</span>
+          <strong id="finalScoreText">0</strong>
+        </div>
+        <div class="final-rounds">
+          <span>成功完成轮数</span>
+          <strong id="finalRoundText">0</strong>
+        </div>
+        <div class="rating-block">
+          <span>最终评价</span>
+          <strong id="finalRatingTitle">刚摸到门</strong>
+          <p id="finalRatingDetail">你已经开始适应监控画面的节奏。</p>
+        </div>
+        <button id="restartButton" class="primary-button" type="button">重新开始</button>
+      </div>
+    </section>
+  </main>
+
+  <div id="debugTools" class="debug-tools">
+    <button id="debugToggleButton" class="debug-toggle" type="button" aria-expanded="false">
+      Debug
+    </button>
+    <section id="debugPanel" class="debug-panel" aria-label="开发调试面板" hidden>
+      <div class="debug-panel-header">
+        <strong>Debug Panel</strong>
+        <span>live snapshot</span>
+      </div>
+      <pre id="debugContent" class="debug-content">{}</pre>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
