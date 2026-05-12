@@ -138,8 +138,21 @@ button {
 
 .home-rec,
 .camera-hud {
-  font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
-  letter-spacing: 0;
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  z-index: 26;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: #d7ffdb;
+  font-size: 11px;
+  font-weight: 900;
+  text-shadow: 
+    0 0 8px rgba(101, 240, 155, 0.65),
+    0 0 2px rgba(101, 240, 155, 0.9);
+  pointer-events: none;
+  letter-spacing: 0.05em;
 }
 
 .home-rec {
@@ -229,10 +242,122 @@ h2 {
 .answer-button:active {
   transform: translateY(2px);
 }
+.secondary-button,
+.utility-button {
+  min-height: 46px;
+  border: 1px solid rgba(183, 255, 204, 0.26);
+  border-radius: 8px;
+  color: #d7ffdb;
+  background: rgba(7, 16, 13, 0.88);
+  font-weight: 900;
+  cursor: pointer;
+  touch-action: manipulation;
+  box-shadow: inset 0 0 16px rgba(101, 240, 155, 0.05);
+}
+
+.secondary-button:active,
+.utility-button:active {
+  transform: translateY(2px);
+}
+
+.game-controls {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  z-index: 74;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.utility-button {
+  min-width: 76px;
+  min-height: 40px;
+  padding: 0 10px;
+  color: #caffd5;
+  font-size: 12px;
+  text-shadow: 0 0 8px rgba(101, 240, 155, 0.42);
+  pointer-events: auto;
+}
+
+.pause-button {
+  min-width: 58px;
+}
+
+.sound-button[aria-pressed="false"] {
+  color: rgba(255, 209, 102, 0.95);
+  border-color: rgba(255, 209, 102, 0.34);
+}
+
+
+.game-paused .scene,
+.game-paused .scene *,
+.game-paused .scene::before,
+.game-paused .scene::after {
+  animation-play-state: paused !important;
+}
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 22px 16px;
+  background:
+    linear-gradient(rgba(3, 8, 6, 0.72), rgba(3, 8, 6, 0.88)),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 5px);
+  backdrop-filter: blur(4px);
+}
+
+.confirm-overlay {
+  z-index: 96;
+  background:
+    linear-gradient(rgba(3, 8, 6, 0.82), rgba(3, 8, 6, 0.94)),
+    repeating-linear-gradient(90deg, rgba(159, 255, 188, 0.05) 0 1px, transparent 1px 22px);
+}
+
+.modal-overlay[hidden] {
+  display: none;
+}
+
+.modal-panel {
+  width: min(100%, 340px);
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+  border: 1px solid rgba(181, 255, 201, 0.28);
+  border-radius: 8px;
+  background: rgba(7, 16, 13, 0.96);
+  box-shadow:
+    inset 0 0 30px rgba(101, 240, 155, 0.05),
+    0 24px 54px rgba(0, 0, 0, 0.58);
+}
+
+.modal-panel h2 {
+  color: #f8fff3;
+  font-size: 24px;
+}
+
+.modal-actions,
+.confirm-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.confirm-message {
+  color: #c9d8cd;
+  font-size: 15px;
+  line-height: 1.5;
+}
 
 .observe-layout {
   gap: 12px;
   padding-bottom: 14px;
+}
+.observe-layout,
+.question-layout {
+  padding-top: 68px;
 }
 
 .status-bar {
@@ -281,6 +406,7 @@ h2 {
     inset 0 0 48px rgba(0, 0, 0, 0.72),
     0 0 0 1px rgba(0, 0, 0, 0.75),
     0 18px 38px rgba(0, 0, 0, 0.38);
+  filter: contrast(1.02) saturate(0.92);
 }
 
 .scene-light-flash {
@@ -304,20 +430,22 @@ h2 {
   background:
     repeating-linear-gradient(
       0deg,
-      rgba(255, 255, 255, 0.055) 0,
-      rgba(255, 255, 255, 0.055) 1px,
+      rgba(255, 255, 255, 0.06) 0,
+      rgba(255, 255, 255, 0.06) 1px,
       transparent 1px,
-      transparent 5px
+      transparent 4px
     ),
-    radial-gradient(circle at center, transparent 50%, rgba(0, 0, 0, 0.52) 100%);
+    radial-gradient(circle at center, transparent 50%, rgba(0, 0, 0, 0.58) 100%);
   mix-blend-mode: screen;
+  animation: scanlineMove 8s linear infinite;
 }
 
 .scene::after {
   background:
-    radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.08), transparent 12%),
-    repeating-radial-gradient(circle at 60% 50%, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 8px);
-  opacity: 0.28;
+    radial-gradient(circle at 22% 18%, rgba(255, 255, 255, 0.1), transparent 12%),
+    repeating-radial-gradient(circle at 60% 50%, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 8px);
+  opacity: 0.32;
+  animation: noiseFlicker 0.15s steps(2) infinite;
 }
 
 .camera-hud {
@@ -331,8 +459,11 @@ h2 {
   color: #d7ffdb;
   font-size: 11px;
   font-weight: 900;
-  text-shadow: 0 0 8px rgba(101, 240, 155, 0.55);
+  text-shadow: 
+    0 0 8px rgba(101, 240, 155, 0.65),
+    0 0 2px rgba(101, 240, 155, 0.9);
   pointer-events: none;
+  letter-spacing: 0.05em;
 }
 
 .camera-hud-top {
@@ -382,11 +513,14 @@ h2 {
   inset: 0 0 auto 0;
   height: 61%;
   background:
-    linear-gradient(rgba(18, 36, 28, 0.74), rgba(9, 23, 18, 0.86)),
+    linear-gradient(rgba(22, 26, 28, 0.74), rgba(12, 15, 16, 0.86)),
     linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(255, 236, 150, 0.08) 0 2px, transparent 2px 34px),
-    #314936;
-  background-size: auto, 26px 26px, 100% 34px, auto;
+    linear-gradient(0deg, rgba(255, 248, 220, 0.06) 0 2px, transparent 2px 34px),
+    radial-gradient(ellipse at 20% 30%, rgba(255, 255, 255, 0.03), transparent 25%),
+    radial-gradient(ellipse at 80% 40%, rgba(0, 0, 0, 0.12), transparent 20%),
+    #3a4045;
+  background-size: auto, 26px 26px, 100% 34px, 100% 100%, 100% 100%, auto;
+  box-shadow: inset 0 -8px 12px rgba(0, 0, 0, 0.15);
 }
 
 .store-floor {
@@ -395,29 +529,34 @@ h2 {
   bottom: 0;
   height: 45%;
   background:
-    linear-gradient(90deg, rgba(3, 8, 6, 0.28) 1px, transparent 1px),
-    linear-gradient(rgba(3, 8, 6, 0.28) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(119, 132, 89, 0.8), rgba(65, 81, 57, 0.92)),
-    #526648;
-  background-size: 28px 28px, 28px 28px, auto, auto;
+    linear-gradient(90deg, rgba(3, 8, 6, 0.32) 1px, transparent 1px),
+    linear-gradient(rgba(3, 8, 6, 0.32) 1px, transparent 1px),
+    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.04), transparent 40%),
+    linear-gradient(180deg, rgba(95, 98, 102, 0.82), rgba(68, 72, 76, 0.94)),
+    #5a5e62;
+  background-size: 28px 28px, 28px 28px, 100% 100%, auto, auto;
   transform: perspective(220px) rotateX(11deg);
   transform-origin: bottom;
+  box-shadow: inset 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
 .entry-mat {
-  right: 22px;
+  right: 12px;
   top: 214px;
   width: 92px;
   height: 26px;
   display: grid;
   place-items: center;
-  border: 2px solid rgba(18, 31, 24, 0.75);
+  border: 2px solid rgba(18, 31, 24, 0.85);
   border-radius: 4px;
-  color: rgba(218, 255, 220, 0.68);
+  color: rgba(218, 255, 220, 0.72);
   background:
-    repeating-linear-gradient(90deg, rgba(12, 28, 21, 0.8) 0 5px, rgba(24, 62, 45, 0.82) 5px 10px);
+    repeating-linear-gradient(90deg, rgba(12, 28, 21, 0.85) 0 5px, rgba(24, 62, 45, 0.88) 5px 10px);
   font-size: 10px;
   font-weight: 900;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .store-door {
@@ -425,47 +564,60 @@ h2 {
   right: 14px;
   width: 88px;
   height: 146px;
-  border: 3px solid #15251c;
+  overflow: hidden;
+  border: 4px solid #13231d;
+  border-radius: 6px 6px 3px 3px;
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.16), transparent 40%),
-    linear-gradient(180deg, rgba(139, 187, 166, 0.92), rgba(78, 125, 105, 0.94));
+    linear-gradient(90deg, #13231d 0 6px, transparent 6px calc(50% - 2px), rgba(19, 35, 29, 0.9) calc(50% - 2px) calc(50% + 2px), transparent calc(50% + 2px) calc(100% - 6px), #13231d calc(100% - 6px)),
+    linear-gradient(180deg, rgba(218, 255, 246, 0.32), rgba(78, 148, 134, 0.5) 55%, rgba(25, 62, 55, 0.78));
   box-shadow:
-    inset 0 0 18px rgba(18, 33, 24, 0.45),
-    0 8px 0 rgba(0, 0, 0, 0.24);
-  transform-origin: right center;
+    inset 0 0 18px rgba(18, 33, 24, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 8px 0 rgba(0, 0, 0, 0.24),
+    0 0 14px rgba(135, 229, 205, 0.12);
 }
 
-.store-door::before {
-  content: "";
-  position: absolute;
-  inset: 12px 15px 54px;
-  border: 2px solid rgba(21, 37, 28, 0.58);
-  background:
-    linear-gradient(90deg, transparent 47%, rgba(21, 37, 28, 0.46) 47% 53%, transparent 53%),
-    linear-gradient(0deg, transparent 47%, rgba(21, 37, 28, 0.46) 47% 53%, transparent 53%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.24), transparent 48%),
-    rgba(13, 40, 36, 0.22);
-}
-
+.store-door::before,
 .store-door::after {
   content: "";
   position: absolute;
-  right: 10px;
-  top: 62px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #253827;
+  top: 10px;
+  bottom: 10px;
+  width: calc(50% - 7px);
+  border: 2px solid rgba(21, 37, 28, 0.62);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.42), transparent 36%),
+    linear-gradient(180deg, rgba(201, 255, 244, 0.54), rgba(83, 150, 137, 0.32)),
+    rgba(12, 46, 42, 0.24);
+  box-shadow: inset 0 0 12px rgba(207, 255, 244, 0.12);
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.store-door::before {
+  left: 6px;
+}
+
+.store-door::after {
+  right: 6px;
 }
 
 .store-door-opening {
-  animation: doorAutoOpen 1.08s ease-in-out;
   box-shadow:
-    -14px 0 18px rgba(202, 255, 213, 0.2),
+    -10px 0 14px rgba(202, 255, 213, 0.16),
     inset 0 0 18px rgba(18, 33, 24, 0.45);
 }
 
-.checkout-counter {
+.store-door-opening::before {
+  animation: doorPaneLeft 1.08s ease-in-out;
+}
+
+.store-door-opening::after {
+  animation: doorPaneRight 1.08s ease-in-out;
+}
+
+  .checkout-counter {
   right: 14px;
   bottom: 62px;
   width: 136px;
@@ -481,7 +633,7 @@ h2 {
 }
 
 .checkout-counter::before {
-  content: "收银台";
+  content: "收银�?;
   position: absolute;
   left: 10px;
   bottom: 10px;
@@ -596,17 +748,6 @@ h2 {
   top: 180px;
 }
 
-.shelf-price-tag {
-  position: absolute;
-  right: 4px;
-  top: -15px;
-  padding: 2px 4px;
-  border-radius: 3px;
-  color: #2d210a;
-  background: #ffe16a;
-  font-size: 9px;
-  font-weight: 900;
-}
 
 .fridge {
   left: 16px;
@@ -616,11 +757,13 @@ h2 {
   border: 3px solid #11231e;
   border-radius: 8px;
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.2), transparent 38%),
-    linear-gradient(180deg, rgba(178, 235, 242, 0.86), rgba(82, 139, 150, 0.94));
+    linear-gradient(90deg, rgba(255, 255, 255, 0.24), transparent 42%),
+    linear-gradient(180deg, rgba(178, 235, 242, 0.88), rgba(82, 139, 150, 0.96));
   box-shadow:
-    inset 0 0 22px rgba(0, 0, 0, 0.35),
-    0 8px 0 rgba(0, 0, 0, 0.2);
+    inset 0 0 28px rgba(0, 0, 0, 0.42),
+    inset 0 0 8px rgba(178, 235, 242, 0.35),
+    0 8px 0 rgba(0, 0, 0, 0.2),
+    0 0 18px rgba(178, 235, 242, 0.15);
 }
 
 .fridge::before {
@@ -628,9 +771,10 @@ h2 {
   position: absolute;
   top: 8px;
   left: 10px;
-  color: #183338;
+  color: rgba(24, 51, 56, 0.85);
   font-size: 13px;
   font-weight: 900;
+  text-shadow: 0 0 4px rgba(178, 235, 242, 0.3);
 }
 
 .fridge::after {
@@ -641,6 +785,9 @@ h2 {
   left: 50%;
   width: 3px;
   background: rgba(17, 39, 43, 0.55);
+  box-shadow: 
+    0 0 4px rgba(0, 0, 0, 0.3),
+    inset 0 0 2px rgba(255, 255, 255, 0.2);
 }
 
 .scene-item {
@@ -667,10 +814,11 @@ h2 {
 }
 
 .product-rack {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(12px, 1fr));
+  display: flex;
+  justify-content: center;
   align-items: end;
-  gap: 4px;
+  gap: 3px;
+  flex-wrap: nowrap;
   min-height: 34px;
   transform-origin: center bottom;
   transition: opacity 0.16s ease, filter 0.16s ease, transform 0.16s ease;
@@ -686,11 +834,13 @@ h2 {
 
 .product-label {
   justify-self: start;
-  padding: 2px 5px;
-  border-radius: 3px;
-  color: #2f250f;
-  background: rgba(255, 226, 106, 0.88);
-  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 2px;
+  color: rgba(47, 37, 15, 0.75);
+  background: rgba(255, 226, 106, 0.58);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .product-unit {
@@ -699,11 +849,12 @@ h2 {
   display: block;
   width: 17px;
   height: 28px;
-  border: 2px solid rgba(20, 32, 25, 0.72);
+  border: 2px solid rgba(20, 32, 25, 0.75);
   background: #f5efe0;
   box-shadow:
-    inset 0 -4px 0 rgba(0, 0, 0, 0.1),
-    0 2px 0 rgba(0, 0, 0, 0.22);
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -4px 0 rgba(0, 0, 0, 0.12),
+    0 2px 0 rgba(0, 0, 0, 0.25);
 }
 
 .product-water,
@@ -723,7 +874,7 @@ h2 {
   height: 7px;
   border-radius: 2px 2px 0 0;
   background: inherit;
-  border: 2px solid rgba(20, 32, 25, 0.72);
+  border: 2px solid rgba(20, 32, 25, 0.75);
   border-bottom: 0;
 }
 
@@ -798,6 +949,10 @@ h2 {
 
 .product-water {
   background: #9de4ff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -4px 0 rgba(0, 0, 0, 0.12),
+    0 2px 0 rgba(0, 0, 0, 0.25);
 }
 
 .item-riceball {
@@ -805,11 +960,12 @@ h2 {
 }
 
 .product-riceball {
-  border-color: #273225;
+  border-color: rgba(20, 32, 25, 0.75);
   background:
     linear-gradient(180deg, #fffbed 0 74%, #d7dfc8 74% 100%);
   box-shadow:
-    inset 0 -4px 0 rgba(36, 48, 37, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -4px 0 rgba(36, 48, 37, 0.18),
     0 2px 0 rgba(0, 0, 0, 0.32);
 }
 
@@ -819,6 +975,10 @@ h2 {
 
 .product-chips {
   background: #ffd166;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -4px 0 rgba(0, 0, 0, 0.12),
+    0 2px 0 rgba(0, 0, 0, 0.25);
 }
 
 .item-milk {
@@ -827,6 +987,10 @@ h2 {
 
 .product-milk {
   background: #e8f4ff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    inset 0 -4px 0 rgba(0, 0, 0, 0.12),
+    0 2px 0 rgba(0, 0, 0, 0.25);
 }
 
 .item-bento {
@@ -835,6 +999,10 @@ h2 {
 
 .product-bento {
   background: #c9d98b;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -4px 0 rgba(0, 0, 0, 0.12),
+    0 2px 0 rgba(0, 0, 0, 0.25);
 }
 
 .item-candy {
@@ -843,6 +1011,10 @@ h2 {
 
 .product-candy {
   background: #ffbdd7;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -4px 0 rgba(0, 0, 0, 0.12),
+    0 2px 0 rgba(0, 0, 0, 0.25);
 }
 
 .item-depleted {
@@ -865,6 +1037,32 @@ h2 {
   filter: none;
 }
 
+
+.product-placeholder {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+.product-removing {
+  pointer-events: none;
+  will-change: opacity, transform, filter;
+}
+
+.product-taken-highlight {
+  animation:
+    itemFlash var(--item-flash-duration, 0.52s) ease-in-out 2,
+    productFadeOut 0.66s ease-in forwards;
+}
+
+.product-taken-highlight.product-riceball {
+  animation:
+    riceballFlash var(--item-flash-duration, 0.52s) ease-in-out 2,
+    productFadeOut 0.66s ease-in forwards;
+}
+
+.product-vanishing {
+  animation: productVanish 0.66s ease-in forwards;
+}
 .product-rack.item-highlight .product-unit {
   animation: itemFlash var(--item-flash-duration, 0.52s) ease-in-out 2;
 }
@@ -1087,11 +1285,22 @@ h2 {
 }
 
 .cashier-amount {
-  right: 26px;
-  bottom: 90px;
+  top: 110px;
+  left: 24px;
   min-width: 64px;
+  padding: 7px 9px;
+  border: 2px solid rgba(20, 36, 27, 0.85);
+  border-radius: 4px;
+  color: #0d3d2a;
+  background: 
+    linear-gradient(180deg, rgba(255, 255, 255, 0.15), transparent 40%),
+    #d8ffe5;
+  font-size: 12px;
+  font-weight: 900;
   text-align: center;
-  background: #dffbdd;
+  box-shadow: 
+    inset 0 0 8px rgba(119, 240, 160, 0.4),
+    0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .monitor-text {
@@ -1106,9 +1315,12 @@ h2 {
 
 .door-sign {
   top: 44px;
-  right: 24px;
+  right: 14px;
+  width: 88px;
+  padding: 7px 0;
   color: #513700;
   background: #ffd45f;
+  text-align: center;
 }
 
 .light-placeholder {
@@ -1451,6 +1663,24 @@ h2 {
   word-break: break-word;
 }
 
+@keyframes scanlineMove {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(4px);
+  }
+}
+
+@keyframes noiseFlicker {
+  0%, 100% {
+    opacity: 0.32;
+  }
+  50% {
+    opacity: 0.28;
+  }
+}
+
 @keyframes recBlink {
   50% {
     opacity: 0.18;
@@ -1502,22 +1732,35 @@ h2 {
   }
 }
 
-@keyframes doorAutoOpen {
+@keyframes doorPaneLeft {
   0%,
   100% {
-    filter: brightness(1);
-    transform: perspective(180px) rotateY(0deg);
+    transform: translateX(0);
   }
 
   18%,
   72% {
-    filter: brightness(1.28);
-    transform: perspective(180px) rotateY(38deg);
+    transform: translateX(-18px);
   }
 
   46% {
-    filter: brightness(1.38);
-    transform: perspective(180px) rotateY(54deg);
+    transform: translateX(-24px);
+  }
+}
+
+@keyframes doorPaneRight {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  18%,
+  72% {
+    transform: translateX(18px);
+  }
+
+  46% {
+    transform: translateX(24px);
   }
 }
 
@@ -1547,11 +1790,45 @@ h2 {
   }
 
   50% {
-    filter: brightness(1.14);
+    filter: brightness(1.24);
     box-shadow:
-      0 0 0 4px rgba(255, 89, 89, 0.72),
-      0 0 20px rgba(255, 232, 94, 0.9),
-      inset 0 0 14px rgba(255, 236, 110, 0.72);
+      0 0 0 4px rgba(255, 232, 94, 0.72),
+      0 0 24px rgba(255, 232, 94, 0.86),
+      inset 0 0 16px rgba(255, 236, 110, 0.72);
+  }
+}
+
+@keyframes productFadeOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: brightness(1.18);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-9px) scale(0.62);
+    filter: brightness(1.5) blur(1px);
+  }
+}
+
+@keyframes productVanish {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+    filter: brightness(1);
+  }
+
+  48% {
+    opacity: 0.72;
+    transform: scale(0.9);
+    filter: brightness(1.35) blur(0.4px);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0.46);
+    filter: brightness(0.45) blur(1.4px);
   }
 }
 
@@ -1630,10 +1907,25 @@ h2 {
 
   .scene-item {
     width: 70px;
+    gap: 3px;
+  }
+
+  .scene-item[data-item-id="riceball"],
+  .scene-item[data-item-id="chips"] {
+    width: 78px;
   }
 
   .fridge-product {
     width: 44px;
+  }
+
+  .product-label {
+    padding: 1px 3px;
+    font-size: 7px;
+  }
+
+  .product-rack {
+    gap: 3px;
   }
 
   .scene-item[data-item-id="water"] {
@@ -1656,11 +1948,45 @@ h2 {
 
   .scene-item[data-item-id="riceball"],
   .scene-item[data-item-id="bento"] {
-    top: 326px !important;
+    top: 338px !important;
   }
 
   .checkout-counter {
     width: 116px;
+  }
+
+  .cashier-amount {
+    top: 106px;
+    left: 24px;
+    min-width: 58px;
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+
+  .wall-clock {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+
+  .monitor-text {
+    padding: 6px 7px;
+    font-size: 11px;
+  }
+
+  .camera-hud {
+    font-size: 10px;
+  }
+
+  .light-placeholder {
+    width: 110px;
+    padding: 7px 9px;
+    font-size: 11px;
+  }
+
+  .customer-area {
+    width: 110px;
+    height: 78px;
+    font-size: 10px;
   }
 
   .panel {
@@ -1683,10 +2009,6 @@ h2 {
   .scene {
     height: min(720px, calc(100vh - 116px));
     height: min(720px, calc(100dvh - 116px));
-  }
-
-  .fridge {
-    left: 24px;
   }
 
   .store-shelf-left {
@@ -1717,11 +2039,7 @@ h2 {
 
   .scene-item[data-item-id="riceball"],
   .scene-item[data-item-id="bento"] {
-    top: 326px !important;
-  }
-
-  .store-door {
-    right: 24px;
+    top: 338px !important;
   }
 
   .checkout-counter {

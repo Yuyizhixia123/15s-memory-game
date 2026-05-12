@@ -65,6 +65,7 @@ const DataConfig = {
         "clock_change",
         "cashier_amount",
         "monitor_shadow",
+        "advanced_detail",
         "first_customer_enter",
         "first_changed_area",
         "last_event_type"
@@ -121,11 +122,12 @@ const DataConfig = {
   items: [
     { id: "water", name: "水", icon: "水", type: "water", count: 2, x: 34, bottom: 110, area: "fridge" },
     { id: "milk", name: "牛奶", icon: "奶", type: "milk", count: 2, x: 86, bottom: 110, area: "fridge" },
-    { id: "riceball", name: "饭团", icon: "饭", type: "riceball", count: 2, x: 34, y: 326 },
-    { id: "chips", name: "薯片", icon: "薯片", type: "chips", count: 2, x: 34, y: 264 },
-    { id: "bento", name: "便当", icon: "便当", type: "bento", count: 2, x: 148, y: 326 },
-    { id: "candy", name: "糖果", icon: "糖", type: "candy", count: 2, x: 148, y: 264 }
+    { id: "riceball", name: "饭团", icon: "饭", type: "riceball", count: 2, x: 34, y: 338 },
+    { id: "chips", name: "薯片", icon: "薯片", type: "chips", count: 2, x: 34, y: 276 },
+    { id: "bento", name: "便当", icon: "便当", type: "bento", count: 2, x: 148, y: 338 },
+    { id: "candy", name: "糖果", icon: "糖", type: "candy", count: 2, x: 148, y: 276 }
   ],
+  randomInitialItemIds: ["riceball", "chips"],
   clockTimes: ["14:31", "14:44", "15:05", "15:17"],
   cashierAmounts: ["¥18", "¥23", "¥31", "¥46", "¥59"],
   monitorShadowLocations: ["监控屏左侧", "监控屏中央", "监控屏右侧", "监控屏下方"],
@@ -139,17 +141,24 @@ const DataConfig = {
 };
 
 const eventLog = [];
+let initialRoundSceneState = null;
 
 if (typeof window !== "undefined") {
   window.eventLog = eventLog;
+  window.getInitialRoundSceneState = getInitialRoundSceneState;
 }
 
 function createInitialSceneState() {
   return {
     customers: [],
     departingCustomers: [],
-    items: DataConfig.items.map((item) => ({ ...item })),
+    items: DataConfig.items.map((item) => {
+      const count = getInitialItemCount(item);
+
+      return { ...item, count, initialCount: count };
+    }),
     changedItemIds: [],
+    removingItems: [],
     itemFlashDuration: DataConfig.difficultyTiers[0].itemFlashDuration,
     fridgeCount: DataConfig.items.filter((item) => item.area === "fridge").length,
     clockTime: "14:30",
@@ -188,6 +197,31 @@ function resetEventLog() {
   eventLog.length = 0;
 }
 
+function captureInitialRoundSceneState() {
+  initialRoundSceneState = {
+    items: sceneState.items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      type: item.type,
+      area: item.area || "",
+      count: item.count,
+      initialCount: item.initialCount
+    })),
+    customers: sceneState.customers.map((customer) => ({ ...customer })),
+    clockTime: sceneState.clockTime,
+    cashierAmount: sceneState.cashierAmount,
+    round: GameState.round
+  };
+}
+
+function getInitialRoundSceneState() {
+  return initialRoundSceneState;
+}
+
+function clearInitialRoundSceneState() {
+  initialRoundSceneState = null;
+}
+
 function randomFrom(list) {
   return list[Math.floor(Math.random() * list.length)];
 }
@@ -205,6 +239,14 @@ function shuffleList(list) {
   }
 
   return shuffled;
+}
+
+function getInitialItemCount(item) {
+  if (!DataConfig.randomInitialItemIds.includes(item.id)) {
+    return item.count;
+  }
+
+  return 1 + Math.floor(Math.random() * 3);
 }
 
 function getSurveillanceTip() {
@@ -253,14 +295,14 @@ const DifficultyManager = {
 
 const RatingManager = {
   ratings: [
-    { min: 50, title: "非人类反应", detail: "你已经把监控画面看成了慢动作。" },
-    { min: 35, title: "人类高玩", detail: "细节变化很难从你眼前溜走。" },
-    { min: 25, title: "极限挑战者", detail: "高强度录像也压不住你的记忆。" },
-    { min: 20, title: "记忆高手", detail: "你开始稳定抓住连续变化。" },
-    { min: 15, title: "反应在线", detail: "节奏已经跟上，失误越来越少。" },
-    { min: 10, title: "节奏入门", detail: "你刚进入状态，后面才是真正考验。" },
-    { min: 5, title: "手感预热", detail: "你已经摸到这个现场的节奏。" },
-    { min: 0, title: "刚摸到门", detail: "监控画面还在试探你的注意力。" }
+    { min: 30, title: "神之领域", detail: "你已经把监控画面看成了慢动作。" },
+    { min: 25, title: "动态视力MAX", detail: "细节变化很难从你眼前溜走。" },
+    { min: 20, title: "大脑超频", detail: "高强度录像也压不住你的记忆。" },
+    { min: 15, title: "肌肉记忆", detail: "你开始稳定抓住连续变化。" },
+    { min: 12, title: "渐入佳境", detail: "节奏已经跟上，失误越来越少。" },
+    { min: 9, title: "神经递质激活", detail: "你刚进入状态，后面才是真正考验。" },
+    { min: 5, title: "引擎预热", detail: "你已经摸到这个现场的节奏。" },
+    { min: 0, title: "梦游状态", detail: "监控画面还在试探你的注意力。" }
   ],
 
   getGameRating(completedRounds) {
@@ -290,9 +332,11 @@ const EventGenerator = {
   },
 
   createVirtualState() {
+    const initialItems = sceneState.items.length > 0 ? sceneState.items : DataConfig.items;
+
     return {
       insideCustomers: [],
-      itemCounts: Object.fromEntries(DataConfig.items.map((item) => [item.id, item.count])),
+      itemCounts: Object.fromEntries(initialItems.map((item) => [item.id, item.count])),
       fridgeCount: DataConfig.items.filter((item) => item.area === "fridge").length,
       clockTime: "14:30",
       cashierAmount: "¥23"
@@ -525,9 +569,21 @@ if (typeof window !== "undefined") {
   window.EventGenerator = EventGenerator;
 }
 
+const AdvancedQuestionState = {
+  lastAdvancedQuestionRound: 0
+};
+
 const QuestionGenerator = {
   generate(log, state, round = 1) {
     const allowedQuestionTypes = DifficultyManager.getAllowedQuestionTypes(round);
+    const advancedQuestion = allowedQuestionTypes.includes("advanced_detail")
+      ? this.generateAdvancedDetailQuestion({ log, state, round })
+      : null;
+
+    if (advancedQuestion) {
+      return advancedQuestion;
+    }
+
     const builders = {
       last_customer_color: () => this.buildCustomerColorQuestion(log),
       item_taken: () => this.buildItemTakenQuestion(log),
@@ -551,6 +607,116 @@ const QuestionGenerator = {
     }
 
     return this.buildFallbackQuestion(log, state);
+  },
+
+  shouldUseAdvancedQuestion(round) {
+    if (round < 15 || round - AdvancedQuestionState.lastAdvancedQuestionRound <= 2) {
+      return false;
+    }
+
+    const roll = Math.random();
+
+    if (round >= 25) {
+      return roll < 0.4;
+    }
+
+    if (round >= 20) {
+      return roll < 0.3;
+    }
+
+    return roll < 0.2;
+  },
+
+  generateAdvancedDetailQuestion(context) {
+    if (!this.shouldUseAdvancedQuestion(context.round)) {
+      return null;
+    }
+
+    const candidates = [
+      this.buildInitialQuantityQuestion(context),
+      this.buildMissingCustomerColorQuestion(context)
+    ].filter(Boolean);
+
+    if (candidates.length === 0) {
+      return null;
+    }
+
+    const question = randomFrom(candidates);
+    AdvancedQuestionState.lastAdvancedQuestionRound = context.round;
+
+    return question;
+  },
+
+  buildInitialQuantityQuestion() {
+    const initialState = getInitialRoundSceneState();
+
+    if (!initialState || !Array.isArray(initialState.items)) {
+      return null;
+    }
+
+    const variableItems = initialState.items.filter((item) => {
+      const configItem = DataConfig.items.find((entry) => entry.id === item.id);
+
+      return configItem && configItem.area !== "fridge" && DataConfig.randomInitialItemIds.includes(item.id);
+    });
+
+    if (variableItems.length === 0) {
+      return null;
+    }
+
+    const item = randomFrom(variableItems);
+    const answer = `${item.count}个`;
+    const wrongAnswers = [1, 2, 3, 4]
+      .filter((count) => count !== item.count)
+      .map((count) => `${count}个`);
+
+    return {
+      text: `刚才观察开始时，货架上有几个${item.name}？`,
+      options: buildUniqueOptions(answer, wrongAnswers),
+      answer,
+      questionType: "advanced_initial_quantity",
+      sourceEventId: "initial-round-scene",
+      sourceItemId: item.id
+    };
+  },
+
+  buildMissingCustomerColorQuestion({ log }) {
+    const customerColorOptions = DataConfig.customers
+      .map((customer) => customer.color)
+      .filter((color, index, colors) => colors.indexOf(color) === index);
+
+    if (customerColorOptions.length < 3) {
+      return null;
+    }
+
+    const enteredColors = log
+      .filter((event) => event.type === "customer_enter")
+      .map((event) => event.customerColor || event.color)
+      .filter(Boolean);
+    const uniqueEnteredColors = enteredColors
+      .filter((color, index, colors) => colors.indexOf(color) === index);
+
+    if (uniqueEnteredColors.length < 3 || uniqueEnteredColors.length >= customerColorOptions.length) {
+      return null;
+    }
+
+    const missingColors = customerColorOptions.filter((color) => !uniqueEnteredColors.includes(color));
+
+    if (missingColors.length === 0) {
+      return null;
+    }
+
+    const answer = randomFrom(missingColors);
+    const wrongAnswers = uniqueEnteredColors;
+
+    return {
+      text: "以下哪种颜色衣服的顾客没有进入过商店？",
+      options: buildUniqueOptions(answer, wrongAnswers),
+      answer,
+      questionType: "advanced_missing_customer_color",
+      sourceEventId: "current-round-customer-enter",
+      enteredColors: uniqueEnteredColors
+    };
   },
 
   buildCustomerColorQuestion(log) {
@@ -810,6 +976,7 @@ const QuestionGenerator = {
 };
 
 if (typeof window !== "undefined") {
+  window.AdvancedQuestionState = AdvancedQuestionState;
   window.QuestionGenerator = QuestionGenerator;
 }
 
@@ -817,16 +984,63 @@ const TimelinePlayer = {
   timers: [],
   transientTimers: [],
   itemFlashTokens: {},
+  doorMotionToken: 0,
+  scheduledEvents: [],
+  startedAt: 0,
+  pausedElapsed: 0,
+  isPaused: false,
 
   start(events) {
     this.stop();
-    events.forEach((event) => {
+    this.scheduledEvents = events.map((event) => ({ event, played: false }));
+    this.startedAt = performance.now();
+    this.pausedElapsed = 0;
+    this.isPaused = false;
+    this.schedulePendingEvents(0);
+  },
+
+  schedulePendingEvents(elapsedSeconds) {
+    this.timers.forEach((timerId) => clearTimeout(timerId));
+    this.timers = [];
+
+    this.scheduledEvents.forEach((entry) => {
+      if (entry.played) {
+        return;
+      }
+
+      const delay = Math.max(0, (entry.event.time - elapsedSeconds) * 1000);
       const timerId = setTimeout(() => {
-        this.playEvent(event);
-      }, event.time * 1000);
+        if (this.isPaused || entry.played) {
+          return;
+        }
+
+        entry.played = true;
+        this.playEvent(entry.event);
+      }, delay);
 
       this.timers.push(timerId);
     });
+  },
+
+  pause() {
+    if (this.isPaused) {
+      return;
+    }
+
+    this.pausedElapsed = Math.max(0, (performance.now() - this.startedAt) / 1000);
+    this.timers.forEach((timerId) => clearTimeout(timerId));
+    this.timers = [];
+    this.isPaused = true;
+  },
+
+  resume() {
+    if (!this.isPaused) {
+      return;
+    }
+
+    this.startedAt = performance.now() - this.pausedElapsed * 1000;
+    this.isPaused = false;
+    this.schedulePendingEvents(this.pausedElapsed);
   },
 
   stop() {
@@ -835,11 +1049,22 @@ const TimelinePlayer = {
     this.timers = [];
     this.transientTimers = [];
     this.itemFlashTokens = {};
+    this.doorMotionToken = 0;
+    this.scheduledEvents = [];
+    this.startedAt = 0;
+    this.pausedElapsed = 0;
+    this.isPaused = false;
   },
 
   playEvent(event) {
-    if (GameState.phase !== "observe") {
+    if (GameState.phase !== "observe" || PauseManager.isPaused()) {
       return;
+    }
+
+    const doorLinkedEvents = ["customer_enter", "customer_exit", "door_auto_open"];
+
+    if (!doorLinkedEvents.includes(event.type)) {
+      SoundManager.play("event");
     }
 
     if (event.type === "customer_enter") {
@@ -881,20 +1106,9 @@ const TimelinePlayer = {
 
   applyCustomerEnter(event) {
     const slot = DataConfig.areas.customerSlots[sceneState.customers.length % DataConfig.areas.customerSlots.length];
-    const existingCustomer = sceneState.customers.find((customer) => customer.id === event.customerId);
+    const enterDelay = 170;
 
-    if (!existingCustomer) {
-      sceneState.customers.push({
-        id: event.customerId,
-        name: event.label,
-        color: event.color,
-        style: event.style,
-        x: slot.x,
-        y: slot.y
-      });
-    }
-
-    sceneState.lastCustomerId = event.customerId;
+    this.triggerDoorMotion(1080);
     sceneState.activeTip = getSurveillanceTip();
     eventLog.push({
       id: event.id,
@@ -902,17 +1116,40 @@ const TimelinePlayer = {
       type: event.type,
       customerId: event.customerId,
       color: event.color,
+      customerColor: event.color,
       label: event.label
     });
 
     SceneRenderer.render(sceneState);
-    this.clearTransientState(["activeTip", "lastCustomerId"], 1200);
+    this.clearTransientState(["activeTip"], 1200);
+
+    const timerId = setTimeout(() => {
+      const existingCustomer = sceneState.customers.find((customer) => customer.id === event.customerId);
+
+      if (!existingCustomer) {
+        sceneState.customers.push({
+          id: event.customerId,
+          name: event.label,
+          color: event.color,
+          style: event.style,
+          x: slot.x,
+          y: slot.y
+        });
+      }
+
+      sceneState.lastCustomerId = event.customerId;
+      SceneRenderer.render(sceneState);
+      this.clearTransientState(["lastCustomerId"], 900);
+    }, enterDelay);
+
+    this.transientTimers.push(timerId);
   },
 
   applyItemTaken(event) {
     const item = sceneState.items.find((sceneItem) => sceneItem.id === event.itemId);
 
-    if (item) {
+    if (item && item.count > 0) {
+      this.trackRemovingItem(event.id, event.itemId, "taken");
       item.count = Math.max(0, item.count - 1);
 
       if (item.area === "fridge") {
@@ -952,7 +1189,7 @@ const TimelinePlayer = {
   },
 
   applyDoorAutoOpen(event) {
-    sceneState.doorAutoOpenActive = true;
+    this.triggerDoorMotion(1080);
     sceneState.activeTip = getSurveillanceTip();
     eventLog.push({
       id: event.id,
@@ -962,11 +1199,13 @@ const TimelinePlayer = {
     });
 
     SceneRenderer.render(sceneState);
-    this.clearTransientState(["activeTip", "doorAutoOpenActive"], 1100);
+    this.clearTransientState(["activeTip"], 1100);
   },
 
   applyCustomerExit(event) {
     const exitingCustomer = sceneState.customers.find((customer) => customer.id === event.customerId);
+
+    this.triggerDoorMotion(1080);
 
     if (exitingCustomer) {
       sceneState.departingCustomers = sceneState.departingCustomers
@@ -990,11 +1229,31 @@ const TimelinePlayer = {
     this.clearTransientState(["activeTip"], 1200);
   },
 
+  triggerDoorMotion(duration = 1080) {
+    const token = this.doorMotionToken + 1;
+
+    this.doorMotionToken = token;
+    sceneState.doorAutoOpenActive = true;
+    SoundManager.play("doorChime");
+
+    const timerId = setTimeout(() => {
+      if (this.doorMotionToken !== token) {
+        return;
+      }
+
+      sceneState.doorAutoOpenActive = false;
+      SceneRenderer.render(sceneState);
+    }, duration);
+
+    this.transientTimers.push(timerId);
+  },
+
   applyShelfItemDisappear(event) {
     const item = sceneState.items.find((sceneItem) => sceneItem.id === event.itemId);
 
-    if (item) {
-      item.count = 0;
+    if (item && item.count > 0) {
+      this.trackRemovingItem(event.id, event.itemId, "disappeared");
+      item.count = Math.max(0, item.count - 1);
     }
 
     sceneState.lastDisappearedItemId = event.itemId;
@@ -1085,6 +1344,33 @@ const TimelinePlayer = {
     this.transientTimers.push(timerId);
   },
 
+  trackRemovingItem(eventId, itemId, effect) {
+    const item = sceneState.items.find((sceneItem) => sceneItem.id === itemId);
+
+    if (!item) {
+      return;
+    }
+
+    const removingItemId = `${eventId}-${effect}`;
+    sceneState.removingItems = sceneState.removingItems
+      .filter((removingItem) => removingItem.id !== removingItemId);
+    sceneState.removingItems.push({
+      id: removingItemId,
+      itemId,
+      type: item.type,
+      effect
+    });
+
+    const timerId = setTimeout(() => {
+      sceneState.removingItems = sceneState.removingItems
+        .filter((removingItem) => removingItem.id !== removingItemId);
+
+      SceneRenderer.render(sceneState);
+    }, 680);
+
+    this.transientTimers.push(timerId);
+  },
+
   markItemChanged(itemId) {
     const token = (this.itemFlashTokens[itemId] || 0) + 1;
     this.itemFlashTokens[itemId] = token;
@@ -1139,7 +1425,12 @@ const SceneRenderer = {
   },
 
   clearLayers() {
-    Object.values(this.layers).forEach((layer) => {
+    [
+      this.layers.characterLayer,
+      this.layers.itemLayer,
+      this.layers.infoLayer,
+      this.layers.anomalyLayer
+    ].forEach((layer) => {
       layer.innerHTML = "";
     });
   },
@@ -1156,13 +1447,25 @@ const SceneRenderer = {
   },
 
   renderBackground(state) {
+    const existingDoor = this.layers.backgroundLayer.querySelector(".store-door");
+
+    if (existingDoor) {
+      existingDoor.classList.toggle("store-door-opening", state.doorAutoOpenActive);
+
+      const fridge = this.layers.backgroundLayer.querySelector(".fridge");
+
+      if (fridge) {
+        fridge.classList.toggle("info-highlight", state.highlightedInfo === "fridge");
+        fridge.dataset.count = state.fridgeCount;
+      }
+
+      return;
+    }
+
     const wall = this.createElement("div", "scene-part store-wall");
     const floor = this.createElement("div", "scene-part store-floor");
     const floorMat = this.createElement("div", "scene-part entry-mat", "入口");
-    const doorClass = state.doorAutoOpenActive
-      ? "scene-part store-door store-door-opening"
-      : "scene-part store-door";
-    const door = this.createElement("div", doorClass);
+    const door = this.createElement("div", "scene-part store-door");
     const counter = this.createElement("div", "scene-part checkout-counter");
     const register = this.createElement("div", "register-machine");
     const scanner = this.createElement("div", "counter-scanner");
@@ -1174,6 +1477,7 @@ const SceneRenderer = {
     const fridge = this.createElement("div", fridgeClass);
 
     fridge.dataset.count = state.fridgeCount;
+    door.classList.toggle("store-door-opening", state.doorAutoOpenActive);
     counter.append(register, scanner);
 
     this.layers.backgroundLayer.append(
@@ -1193,9 +1497,7 @@ const SceneRenderer = {
 
     for (let i = 0; i < 3; i += 1) {
       const board = this.createElement("div", "shelf-board");
-      const tag = this.createElement("span", "shelf-price-tag", i === 0 ? "SALE" : `¥${i + 3}`);
 
-      board.appendChild(tag);
       shelf.appendChild(board);
     }
 
@@ -1204,6 +1506,8 @@ const SceneRenderer = {
 
   renderItems(items) {
     items.forEach((item) => {
+      const removingItems = (sceneState.removingItems || [])
+        .filter((removingItem) => removingItem.itemId === item.id);
       const classNames = [
         "scene-item",
         "product-group",
@@ -1213,22 +1517,44 @@ const SceneRenderer = {
       const itemElement = this.createElement("div", classNames.join(" "));
       const rackClassNames = [
         "product-rack",
-        item.count <= 0 ? "item-depleted" : "",
-        sceneState.changedItemIds.includes(item.id) ? "item-highlight" : "",
-        sceneState.lastTakenItemId === item.id ? "item-just-taken" : "",
-        sceneState.lastDisappearedItemId === item.id ? "item-disappeared" : ""
+        item.count <= 0 && removingItems.length === 0 ? "item-depleted" : ""
       ].filter(Boolean);
       const itemRack = this.createElement("div", rackClassNames.join(" "));
       const itemLabel = this.createElement("div", "product-label", item.name);
       const visibleCount = Math.max(0, item.count);
+      const totalSlots = Math.max(item.initialCount || item.count, visibleCount + removingItems.length);
 
-      for (let i = 0; i < visibleCount; i += 1) {
-        const product = this.createElement("span", `product-unit product-${item.type}`);
+      for (let slotIndex = 0; slotIndex < totalSlots; slotIndex += 1) {
+        if (slotIndex < visibleCount) {
+          const product = this.createElement("span", `product-unit product-${item.type}`);
 
-        itemRack.appendChild(product);
+          itemRack.appendChild(product);
+          continue;
+        }
+
+        const removingItem = removingItems[slotIndex - visibleCount];
+
+        if (removingItem) {
+          const effectClass = removingItem.effect === "taken"
+            ? "product-taken-highlight"
+            : "product-vanishing";
+          const product = this.createElement(
+            "span",
+            `product-unit product-${removingItem.type} product-removing ${effectClass}`
+          );
+
+          product.dataset.removingId = removingItem.id;
+          itemRack.appendChild(product);
+          continue;
+        }
+
+        const placeholder = this.createElement("span", `product-unit product-${item.type} product-placeholder`);
+
+        itemRack.appendChild(placeholder);
       }
 
       itemElement.dataset.itemId = item.id;
+      itemElement.dataset.count = String(totalSlots);
       itemElement.title = item.name;
       itemElement.style.left = `${item.x}px`;
       if (item.area === "fridge" && typeof item.bottom === "number") {
@@ -1297,7 +1623,7 @@ const SceneRenderer = {
       ? "scene-info cashier-amount info-highlight"
       : "scene-info cashier-amount";
     const clock = this.createElement("div", clockClass, `时钟 ${state.clockTime}`);
-    const amount = this.createElement("div", amountClass, state.cashierAmount);
+    const amount = this.createElement("div", amountClass, `收银金额: ${state.cashierAmount}`);
     const monitor = this.createElement("div", "scene-info monitor-text", `监控 ${state.monitorState}`);
     const sign = this.createElement("div", "scene-info door-sign", "OPEN 24H");
 
@@ -1363,6 +1689,8 @@ const GameState = {
       options: [],
       answer: ""
     };
+    AdvancedQuestionState.lastAdvancedQuestionRound = 0;
+    clearInitialRoundSceneState();
     this.clearTimer();
     this.clearDelayedActions();
     TimelinePlayer.stop();
@@ -1407,6 +1735,18 @@ const UIController = {
     });
     this.screens[screenName].classList.add("screen-active");
     GameState.phase = screenName;
+    this.updateControls();
+  },
+
+  updateControls() {
+    const pauseButton = document.getElementById("pauseButton");
+
+    if (pauseButton) {
+      const canPause = GameState.phase === "observe" || GameState.phase === "question";
+      pauseButton.hidden = !canPause || PauseManager.isPaused();
+    }
+
+    SoundManager.updateToggle();
   },
 
   updateStatus() {
@@ -1496,6 +1836,324 @@ const UIController = {
   }
 };
 
+const SoundManager = {
+  storageKey: "memoryGameSoundMuted",
+  muted: false,
+  audioContext: null,
+
+  init() {
+    try {
+      this.muted = localStorage.getItem(this.storageKey) === "true";
+    } catch (error) {
+      this.muted = false;
+    }
+
+    this.updateToggle();
+    document.addEventListener("pointerdown", () => this.unlock(), { once: true });
+    document.addEventListener("click", (event) => {
+      if (event.target.closest("button")) {
+        this.play("button");
+      }
+    });
+  },
+
+  unlock() {
+    if (this.audioContext) {
+      if (this.audioContext.state === "suspended") {
+        this.audioContext.resume().catch(() => {});
+      }
+      return;
+    }
+
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+
+      if (!AudioContextClass) {
+        return;
+      }
+
+      this.audioContext = new AudioContextClass();
+    } catch (error) {
+      this.audioContext = null;
+    }
+  },
+
+  isMuted() {
+    return this.muted;
+  },
+
+  toggleMute() {
+    this.muted = !this.muted;
+
+    try {
+      localStorage.setItem(this.storageKey, String(this.muted));
+    } catch (error) {
+      // localStorage may be unavailable in some embedded browsers.
+    }
+
+    this.updateToggle();
+
+    if (!this.muted) {
+      this.play("resume");
+    }
+  },
+
+  updateToggle() {
+    const button = document.getElementById("soundToggleButton");
+
+    if (!button) {
+      return;
+    }
+
+    button.textContent = this.muted ? "音效：关" : "音效：开";
+    button.setAttribute("aria-pressed", String(!this.muted));
+  },
+
+  play(type) {
+    if (this.muted) {
+      return;
+    }
+
+    try {
+      this.unlock();
+
+      if (!this.audioContext || this.audioContext.state === "suspended") {
+        return;
+      }
+
+      const patterns = {
+        button: [{ frequency: 520, duration: 0.045, volume: 0.28 }],
+        observeStart: [
+          { frequency: 330, duration: 0.08, volume: 0.36 },
+          { frequency: 520, duration: 0.1, delay: 0.06, volume: 0.32 }
+        ],
+        event: [{ frequency: 760, duration: 0.055, type: "triangle", volume: 0.22 }],
+        doorChime: [
+          { frequency: 660, duration: 0.08, type: "sine", volume: 0.28 },
+          { frequency: 990, duration: 0.1, delay: 0.06, type: "triangle", volume: 0.22 }
+        ],
+        correct: [
+          { frequency: 520, duration: 0.08, volume: 0.32 },
+          { frequency: 780, duration: 0.12, delay: 0.07, volume: 0.28 }
+        ],
+        wrong: [
+          { frequency: 240, duration: 0.12, type: "sawtooth", volume: 0.18 },
+          { frequency: 170, duration: 0.16, delay: 0.08, type: "sawtooth", volume: 0.14 }
+        ],
+        lifeLost: [{ frequency: 120, duration: 0.18, type: "square", volume: 0.12 }],
+        gameOver: [
+          { frequency: 260, duration: 0.12, volume: 0.24 },
+          { frequency: 190, duration: 0.16, delay: 0.11, volume: 0.2 },
+          { frequency: 120, duration: 0.24, delay: 0.24, volume: 0.18 }
+        ],
+        pause: [{ frequency: 300, duration: 0.09, type: "triangle", volume: 0.24 }],
+        resume: [{ frequency: 620, duration: 0.09, type: "triangle", volume: 0.24 }]
+      };
+
+      (patterns[type] || patterns.button).forEach((tone) => this.playTone(tone));
+    } catch (error) {
+      // Sound is optional. Playback failures must not affect the game.
+    }
+  },
+
+  playTone({ frequency, duration, delay = 0, type = "sine", volume = 0.24 }) {
+    const context = this.audioContext;
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    const startTime = context.currentTime + delay;
+    const endTime = startTime + duration;
+    const safeVolume = Math.min(0.04, 0.04 * volume);
+
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(frequency, startTime);
+    gain.gain.setValueAtTime(0.0001, startTime);
+    gain.gain.exponentialRampToValueAtTime(safeVolume, startTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, endTime);
+
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start(startTime);
+    oscillator.stop(endTime + 0.02);
+  }
+};
+
+const ConfirmDialog = {
+  overlay: null,
+  title: null,
+  message: null,
+  acceptButton: null,
+  cancelButton: null,
+  onConfirm: null,
+
+  init() {
+    this.overlay = document.getElementById("confirmOverlay");
+    this.title = document.getElementById("confirmTitle");
+    this.message = document.getElementById("confirmMessage");
+    this.acceptButton = document.getElementById("confirmAcceptButton");
+    this.cancelButton = document.getElementById("confirmCancelButton");
+
+    if (!this.overlay || !this.acceptButton || !this.cancelButton) {
+      return;
+    }
+
+    this.cancelButton.addEventListener("click", () => this.hideConfirmDialog());
+    this.acceptButton.addEventListener("click", () => {
+      const callback = this.onConfirm;
+
+      this.hideConfirmDialog();
+
+      if (callback) {
+        callback();
+      }
+    });
+  },
+
+  showConfirmDialog(type, onConfirm) {
+    const config = type === "restart"
+      ? {
+        title: "确认重新开始？",
+        message: "当前进度会丢失。",
+        acceptText: "确认重新开始"
+      }
+      : {
+        title: "确认退出？",
+        message: "当前游戏进度不会保存。",
+        acceptText: "确认退出"
+      };
+
+    this.onConfirm = onConfirm;
+    this.title.textContent = config.title;
+    this.message.textContent = config.message;
+    this.acceptButton.textContent = config.acceptText;
+    this.overlay.hidden = false;
+  },
+
+  hideConfirmDialog() {
+    if (this.overlay) {
+      this.overlay.hidden = true;
+    }
+
+    this.onConfirm = null;
+  }
+};
+
+const PauseManager = {
+  paused: false,
+  pausedPhase: "",
+  overlay: null,
+
+  init() {
+    this.overlay = document.getElementById("pauseOverlay");
+
+    const pauseButton = document.getElementById("pauseButton");
+    const resumeButton = document.getElementById("resumeButton");
+    const restartButton = document.getElementById("pauseRestartButton");
+    const exitButton = document.getElementById("pauseExitButton");
+    const soundButton = document.getElementById("soundToggleButton");
+
+    if (pauseButton) {
+      pauseButton.addEventListener("click", () => this.pauseGame());
+    }
+
+    if (resumeButton) {
+      resumeButton.addEventListener("click", () => this.resumeGame());
+    }
+
+    if (restartButton) {
+      restartButton.addEventListener("click", () => {
+        ConfirmDialog.showConfirmDialog("restart", () => restartGameFromScratch());
+      });
+    }
+
+    if (exitButton) {
+      exitButton.addEventListener("click", () => {
+        ConfirmDialog.showConfirmDialog("exit", () => resetGame());
+      });
+    }
+
+    if (soundButton) {
+      soundButton.addEventListener("click", () => SoundManager.toggleMute());
+    }
+  },
+
+  isPaused() {
+    return this.paused;
+  },
+
+  pauseGame() {
+    if (this.paused || (GameState.phase !== "observe" && GameState.phase !== "question")) {
+      return;
+    }
+
+    this.paused = true;
+    this.pausedPhase = GameState.phase;
+
+    if (this.pausedPhase === "observe") {
+      GameState.clearTimer();
+      TimelinePlayer.pause();
+    }
+
+    this.setAnswerButtonsDisabled(true);
+    this.showPauseMenu();
+    SoundManager.play("pause");
+    UIController.updateControls();
+  },
+
+  resumeGame() {
+    if (!this.paused) {
+      return;
+    }
+
+    const phase = this.pausedPhase;
+    this.paused = false;
+    this.pausedPhase = "";
+    this.hidePauseMenu();
+
+    if (phase === "observe" && GameState.phase === "observe") {
+      TimelinePlayer.resume();
+      startCountdownTimer();
+    }
+
+    if (phase === "question" && GameState.phase === "question" && !GameState.answerLocked) {
+      this.setAnswerButtonsDisabled(false);
+    }
+
+    SoundManager.play("resume");
+    UIController.updateControls();
+  },
+
+  forceClose() {
+    this.paused = false;
+    this.pausedPhase = "";
+    this.hidePauseMenu();
+    ConfirmDialog.hideConfirmDialog();
+    this.setAnswerButtonsDisabled(false);
+    UIController.updateControls();
+  },
+
+  showPauseMenu() {
+    document.querySelector(".app-shell")?.classList.add("game-paused");
+
+    if (this.overlay) {
+      this.overlay.hidden = false;
+    }
+  },
+
+  hidePauseMenu() {
+    document.querySelector(".app-shell")?.classList.remove("game-paused");
+
+    if (this.overlay) {
+      this.overlay.hidden = true;
+    }
+  },
+
+  setAnswerButtonsDisabled(disabled) {
+    document.querySelectorAll(".answer-button").forEach((button) => {
+      button.disabled = disabled;
+    });
+  }
+};
+
 const DebugPanel = {
   isOpen: false,
   refreshTimerId: null,
@@ -1559,6 +2217,7 @@ const DebugPanel = {
       score: GameState.score,
       lives: GameState.lives,
       sceneState,
+      initialRoundSceneState: getInitialRoundSceneState(),
       eventLog,
       currentQuestion: GameState.currentQuestion
     };
@@ -1582,12 +2241,38 @@ function startGame() {
   startObservePhase();
 }
 
+function startCountdownTimer() {
+  GameState.clearTimer();
+
+  GameState.timerId = setInterval(() => {
+    if (PauseManager.isPaused()) {
+      return;
+    }
+
+    GameState.countdown -= 1;
+    UIController.updateStatus();
+
+    if (GameState.countdown <= 0) {
+      GameState.clearTimer();
+      TimelinePlayer.stop();
+      UIController.updateControls();
+      UIController.playObserveEndTransition(() => {
+        if (GameState.phase === "observe" && !PauseManager.isPaused()) {
+          showQuestionPhase();
+        }
+      });
+    }
+  }, 1000);
+}
+
 function startObservePhase() {
   GameState.clearTimer();
   GameState.clearDelayedActions();
   TimelinePlayer.stop();
+  PauseManager.forceClose();
   resetSceneState();
   resetEventLog();
+  captureInitialRoundSceneState();
   GameState.countdown = DifficultyManager.getObserveDuration(GameState.round);
   document.getElementById("convenienceScene").classList.remove("scene-ending");
   SceneRenderer.render(sceneState);
@@ -1596,21 +2281,8 @@ function startObservePhase() {
 
   const events = EventGenerator.generate(GameState.round);
   TimelinePlayer.start(events);
-
-  GameState.timerId = setInterval(() => {
-    GameState.countdown -= 1;
-    UIController.updateStatus();
-
-    if (GameState.countdown <= 0) {
-      GameState.clearTimer();
-      TimelinePlayer.stop();
-      UIController.playObserveEndTransition(() => {
-        if (GameState.phase === "observe") {
-          showQuestionPhase();
-        }
-      });
-    }
-  }, 1000);
+  SoundManager.play("observeStart");
+  startCountdownTimer();
 }
 
 function showQuestionPhase() {
@@ -1624,7 +2296,7 @@ function showQuestionPhase() {
 }
 
 function handleAnswer(answer, selectedButton) {
-  if (GameState.phase !== "question" || GameState.answerLocked) {
+  if (GameState.phase !== "question" || GameState.answerLocked || PauseManager.isPaused()) {
     return;
   }
 
@@ -1644,9 +2316,12 @@ function handleAnswer(answer, selectedButton) {
   if (isCorrect) {
     GameState.score += 10;
     GameState.lastFeedbackMessage = randomFrom(DataConfig.correctFeedbackMessages);
+    SoundManager.play("correct");
   } else {
     GameState.lives -= 1;
     GameState.lastFeedbackMessage = randomFrom(DataConfig.wrongFeedbackMessages);
+    SoundManager.play("wrong");
+    SoundManager.play("lifeLost");
   }
 
   GameState.resultTimerId = setTimeout(() => {
@@ -1668,12 +2343,19 @@ function showResult(isCorrect) {
 }
 
 function resetGame() {
+  PauseManager.forceClose();
   GameState.reset();
   resetSceneState();
   resetEventLog();
   SceneRenderer.render(sceneState);
   UIController.updateStatus();
   UIController.showScreen("home");
+}
+
+function restartGameFromScratch() {
+  PauseManager.forceClose();
+  GameState.reset();
+  startObservePhase();
 }
 
 function goToNextRound() {
@@ -1684,6 +2366,7 @@ function goToNextRound() {
   if (GameState.lives <= 0) {
     UIController.renderGameOver();
     UIController.showScreen("gameOver");
+    SoundManager.play("gameOver");
     return;
   }
 
@@ -1694,9 +2377,13 @@ function goToNextRound() {
 document.addEventListener("DOMContentLoaded", () => {
   UIController.init();
   SceneRenderer.init();
+  SoundManager.init();
+  ConfirmDialog.init();
+  PauseManager.init();
   DebugPanel.init();
   SceneRenderer.render(sceneState);
   UIController.updateStatus();
+  UIController.updateControls();
 
   document.getElementById("startButton").addEventListener("click", startGame);
   document.getElementById("nextRoundButton").addEventListener("click", goToNextRound);

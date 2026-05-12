@@ -109,6 +109,35 @@
         <button id="restartButton" class="primary-button" type="button">重新开始</button>
       </div>
     </section>
+
+    <div id="gameControls" class="game-controls" aria-label="游戏控制">
+      <button id="pauseButton" class="utility-button pause-button" type="button" hidden>暂停</button>
+      <button id="soundToggleButton" class="utility-button sound-button" type="button" aria-pressed="false">音效：开</button>
+    </div>
+
+    <section id="pauseOverlay" class="modal-overlay pause-overlay" hidden aria-modal="true" aria-label="暂停菜单">
+      <div class="modal-panel pause-panel">
+        <p class="eyebrow">REC PAUSED</p>
+        <h2>游戏已暂停</h2>
+        <div class="modal-actions">
+          <button id="resumeButton" class="primary-button" type="button">继续游戏</button>
+          <button id="pauseRestartButton" class="secondary-button" type="button">重新开始</button>
+          <button id="pauseExitButton" class="secondary-button" type="button">退出到首页</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="confirmOverlay" class="modal-overlay confirm-overlay" hidden aria-modal="true" aria-label="确认弹窗">
+      <div class="modal-panel confirm-panel">
+        <p class="eyebrow">CONFIRM</p>
+        <h2 id="confirmTitle">确认退出？</h2>
+        <p id="confirmMessage" class="confirm-message">当前游戏进度不会保存。</p>
+        <div class="confirm-actions">
+          <button id="confirmCancelButton" class="secondary-button" type="button">取消</button>
+          <button id="confirmAcceptButton" class="primary-button" type="button">确认退出</button>
+        </div>
+      </div>
+    </section>
   </main>
 
   <div id="debugTools" class="debug-tools">
