@@ -21,7 +21,10 @@
           <p class="subtitle">盯紧画面。15秒后，只问一个细节。</p>
         </div>
       </div>
-      <button id="startButton" class="primary-button" type="button">开始观察</button>
+      <div class="home-actions">
+        <button id="startButton" class="primary-button" type="button">开始观察</button>
+        <button id="homeLeaderboardButton" class="secondary-button" type="button">查看排行榜</button>
+      </div>
     </section>
 
     <section id="observeScreen" class="screen observe-layout">
@@ -106,6 +109,14 @@
           <strong id="finalRatingTitle">刚摸到门</strong>
           <p id="finalRatingDetail">你已经开始适应监控画面的节奏。</p>
         </div>
+        <div class="leaderboard-summary">
+          <span>历史最高轮数</span>
+          <strong id="bestRoundText">0</strong>
+          <p id="newRecordText" class="record-badge" hidden>新纪录！你刷新了最高轮数。</p>
+        </div>
+        <div class="final-actions">
+          <button id="viewLeaderboardButton" class="secondary-button" type="button">查看排行榜</button>
+        </div>
         <button id="restartButton" class="primary-button" type="button">重新开始</button>
       </div>
     </section>
@@ -113,6 +124,7 @@
     <div id="gameControls" class="game-controls" aria-label="游戏控制">
       <button id="pauseButton" class="utility-button pause-button" type="button" hidden>暂停</button>
       <button id="soundToggleButton" class="utility-button sound-button" type="button" aria-pressed="false">音效：开</button>
+      <button id="musicToggleButton" class="utility-button music-button" type="button" aria-pressed="true">音乐：开</button>
     </div>
 
     <section id="pauseOverlay" class="modal-overlay pause-overlay" hidden aria-modal="true" aria-label="暂停菜单">
@@ -123,6 +135,23 @@
           <button id="resumeButton" class="primary-button" type="button">继续游戏</button>
           <button id="pauseRestartButton" class="secondary-button" type="button">重新开始</button>
           <button id="pauseExitButton" class="secondary-button" type="button">退出到首页</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="leaderboardOverlay" class="modal-overlay leaderboard-overlay" hidden aria-modal="true" aria-label="本地排行榜">
+      <div class="modal-panel leaderboard-panel">
+        <div class="leaderboard-header">
+          <div>
+            <p class="eyebrow">LOCAL RECORD</p>
+            <h2>本地排行榜</h2>
+          </div>
+          <button id="closeLeaderboardButton" class="secondary-button icon-close-button" type="button">关闭</button>
+        </div>
+        <div id="leaderboardStats" class="leaderboard-stats"></div>
+        <div id="leaderboardList" class="leaderboard-list"></div>
+        <div class="leaderboard-actions">
+          <button id="clearLeaderboardButton" class="secondary-button" type="button">清空记录</button>
         </div>
       </div>
     </section>
