@@ -78,8 +78,16 @@ const QuestionGenerator = {
     return question;
   },
 
-  buildInitialQuantityQuestion() {
-    const initialState = getInitialRoundSceneState();
+  getPlayableEvents(log) {
+    return log.filter((event) => event.type !== "initial_inventory_snapshot");
+  },
+
+  getInitialInventorySnapshot(log) {
+    return log.find((event) => event.type === "initial_inventory_snapshot");
+  },
+
+  buildInitialQuantityQuestion({ log }) {
+    const initialState = this.getInitialInventorySnapshot(log);
 
     if (!initialState || !Array.isArray(initialState.items)) {
       return null;
@@ -106,7 +114,7 @@ const QuestionGenerator = {
       options: buildUniqueOptions(answer, wrongAnswers),
       answer,
       questionType: "advanced_initial_quantity",
-      sourceEventId: "initial-round-scene",
+      sourceEventId: initialState.id,
       sourceItemId: item.id
     };
   },
@@ -355,11 +363,13 @@ const QuestionGenerator = {
   },
 
   buildFirstChangedAreaQuestion(log) {
-    if (log.length === 0) {
+    const playableEvents = this.getPlayableEvents(log);
+
+    if (playableEvents.length === 0) {
       return null;
     }
 
-    const firstEvent = log[0];
+    const firstEvent = playableEvents[0];
     const answer = DataConfig.eventAreaLabels[firstEvent.type];
 
     if (!answer) {
@@ -375,11 +385,13 @@ const QuestionGenerator = {
   },
 
   buildLastEventTypeQuestion(log) {
-    if (log.length === 0) {
+    const playableEvents = this.getPlayableEvents(log);
+
+    if (playableEvents.length === 0) {
       return null;
     }
 
-    const lastEvent = log[log.length - 1];
+    const lastEvent = playableEvents[playableEvents.length - 1];
     const answer = DataConfig.eventTypeLabels[lastEvent.type];
 
     if (!answer) {
@@ -395,7 +407,8 @@ const QuestionGenerator = {
   },
 
   buildFallbackQuestion(log) {
-    const answer = `${log.length}个`;
+    const playableEvents = this.getPlayableEvents(log);
+    const answer = `${playableEvents.length}个`;
 
     return {
       text: "本轮记录到了多少个事件？",

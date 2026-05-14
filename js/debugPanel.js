@@ -3,21 +3,56 @@
 const DebugPanel = {
   isOpen: false,
   refreshTimerId: null,
+  container: null,
   toggleButton: null,
   panel: null,
   content: null,
 
   init() {
+    this.container = document.getElementById("debugTools");
     this.toggleButton = document.getElementById("debugToggleButton");
     this.panel = document.getElementById("debugPanel");
     this.content = document.getElementById("debugContent");
 
-    if (!this.toggleButton || !this.panel || !this.content) {
+    if (!this.isDebugEnabled()) {
+      this.disable();
       return;
     }
 
+    if (!this.container || !this.toggleButton || !this.panel || !this.content) {
+      return;
+    }
+
+    this.container.hidden = false;
     this.toggleButton.addEventListener("click", () => this.toggle());
     this.render();
+  },
+
+  isDebugEnabled() {
+    let enabledByUrl = false;
+    let enabledByStorage = false;
+
+    try {
+      enabledByUrl = new URLSearchParams(window.location.search).get("debug") === "1";
+    } catch (error) {
+      enabledByUrl = false;
+    }
+
+    try {
+      enabledByStorage = localStorage.getItem("debugMode") === "true";
+    } catch (error) {
+      enabledByStorage = false;
+    }
+
+    return enabledByUrl || enabledByStorage;
+  },
+
+  disable() {
+    this.close();
+
+    if (this.container) {
+      this.container.hidden = true;
+    }
   },
 
   toggle() {

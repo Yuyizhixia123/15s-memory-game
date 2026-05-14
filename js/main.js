@@ -33,6 +33,23 @@ function startCountdownTimer() {
   }, 1000);
 }
 
+function recordInitialInventorySnapshot() {
+  eventLog.push({
+    id: `round-${GameState.round}-initial-inventory-snapshot`,
+    time: 0,
+    type: "initial_inventory_snapshot",
+    round: GameState.round,
+    items: sceneState.items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      type: item.type,
+      area: item.area || "",
+      count: item.count,
+      initialCount: item.initialCount
+    }))
+  });
+}
+
 function startObservePhase() {
   GameState.clearTimer();
   GameState.clearDelayedActions();
@@ -40,6 +57,7 @@ function startObservePhase() {
   PauseManager.forceClose();
   resetSceneState();
   resetEventLog();
+  recordInitialInventorySnapshot();
   captureInitialRoundSceneState();
   GameState.countdown = DifficultyManager.getObserveDuration(GameState.round);
   document.getElementById("convenienceScene").classList.remove("scene-ending");
@@ -111,14 +129,11 @@ function showResult(isCorrect) {
 }
 
 function resetGame() {
-  PauseManager.forceClose();
-  LeaderboardUI.close();
   GameState.reset();
   resetSceneState();
   resetEventLog();
   SceneRenderer.render(sceneState);
   UIController.updateStatus();
-  UIController.showScreen("home");
 }
 
 function restartGameFromScratch() {
@@ -126,6 +141,13 @@ function restartGameFromScratch() {
   LeaderboardUI.close();
   GameState.reset();
   startObservePhase();
+}
+
+function returnToHome() {
+  PauseManager.forceClose();
+  LeaderboardUI.close();
+  resetGame();
+  UIController.showScreen("home");
 }
 
 function goToNextRound() {
@@ -159,5 +181,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("startButton").addEventListener("click", startGame);
   document.getElementById("nextRoundButton").addEventListener("click", goToNextRound);
-  document.getElementById("restartButton").addEventListener("click", resetGame);
+  document.getElementById("restartButton").addEventListener("click", restartGameFromScratch);
+
+  const finalHomeButton = document.getElementById("finalHomeButton");
+
+  if (finalHomeButton) {
+    finalHomeButton.addEventListener("click", returnToHome);
+  }
 });

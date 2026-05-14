@@ -391,7 +391,7 @@ const PauseManager = {
 
     if (exitButton) {
       exitButton.addEventListener("click", () => {
-        ConfirmDialog.showConfirmDialog("exit", () => resetGame());
+        ConfirmDialog.showConfirmDialog("exit", () => returnToHome());
       });
     }
 
